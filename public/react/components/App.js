@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { PagesList } from './PagesList';
 import { Details } from './Details';
+import { PageForm } from './PageForm';
 
 // import and prepend the api url to any fetch calls
 import apiURL from '../api';
+import { create } from 'react-test-renderer';
 const initialDetailsState = {
 	id: '',
 	title: '',
@@ -14,9 +16,20 @@ const initialDetailsState = {
 	updatedAt: '',
 	authorId: '',
 };
+
+const initialPageFormState = {
+	title: '',
+	content: '',
+	name: '',
+	email: '',
+	tags: '',
+};
+
 export const App = () => {
 	const [pages, setPages] = useState([]);
 	const [details, setDetails] = useState(initialDetailsState);
+	const [pageFormErrors, setPageFormErrors] = useState('');
+	const [pageForm, setPageForm] = useState(initialPageFormState);
 
 	async function fetchPages() {
 		try {
@@ -38,13 +51,44 @@ export const App = () => {
 		}
 	}
 
+	async function createPage(page) {
+		if (
+			!page.title ||
+			!page.content ||
+			!page.name ||
+			!page.email ||
+			!page.tags
+		) {
+			setPageFormErrors('All fields are required!');
+		} else {
+			const response = await fetch(`${apiURL}/wiki`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify(pageForm),
+			});
+			const data = await response.json(); // probably not needed
+			fetchPages();
+			setPageFormErrors('');
+			setPageForm(initialPageFormState);
+		}
+	}
+
+	async function deletePage(slug) {
+		const response = await fetch(`${apiURL}/wiki/${slug}`, {
+			method: 'DELETE',
+		});
+		const data = await response.json(); // probably not needed
+		fetchPages();
+	}
+
 	useEffect(() => {
 		fetchPages();
-		console.log(details);
 	}, []);
 
 	return (
-		<main>
+		<main style={{ marginBottom: '300px' }}>
 			<div
 				style={{
 					textAlign: 'center',
@@ -62,8 +106,23 @@ export const App = () => {
 					alignContent: 'center',
 				}}
 			>
-				<PagesList pages={pages} getDetails={getDetails} />
+				<PagesList
+					pages={pages}
+					getDetails={getDetails}
+					deletePage={deletePage}
+				/>
 				<Details details={details} />
+				<div>
+					<h2 style={{ margin: '1rem', textAlign: 'center' }}>
+						Create a new Page
+					</h2>
+					{pageFormErrors && <h3>{pageFormErrors}</h3>}
+					<PageForm
+						pageForm={pageForm}
+						setPageForm={setPageForm}
+						createPage={createPage}
+					/>
+				</div>
 			</div>
 		</main>
 	);
