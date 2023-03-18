@@ -7,11 +7,7 @@ export const Details = ({ details }) => {
 			<div style={{ width: '400px' }}>
 				<h2 style={{ margin: '1rem', textAlign: 'center' }}>Details</h2>
 				{details.title ? (
-					<div
-						style={{
-							marginTop: '20%',
-						}}
-					>
+					<div>
 						<h3>Title: {details.title}</h3>
 						<p>ID: {details.id}</p>
 						<p>Author ID: {details.authorId}</p>
